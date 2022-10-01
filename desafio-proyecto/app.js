@@ -70,7 +70,6 @@ const actualizarCarrito = () => {
         `
         contenedorCarrito.appendChild(div);
     });
-
     contadorCarrito.innerText =  carrito.length;
     precioTotal.innerText = carrito.reduce((acc,prod) => acc + prod.precio, 0);
 }
@@ -132,3 +131,17 @@ botonFiltrar.addEventListener ('click', () => {
     contenedorProductos.innerHTML = ''
     filtrarCategoria(valor);
 })
+
+
+
+const validarProductoRepetido = (productoId) => {
+    const productoRepetido = carrito.find(producto => producto.id === productoId)
+
+    if (productoRepetido) {
+        productoRepetido.cantidad++;
+        
+    } else {
+        agregarAlCarrito(productoId);
+    }
+}
+
