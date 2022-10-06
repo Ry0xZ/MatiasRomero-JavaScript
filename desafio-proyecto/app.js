@@ -13,30 +13,73 @@ const botonFiltrar = document.getElementById('filtrar');
 
 let carrito = [];
 
-stockProductos.forEach((producto) => {
-
-    const div = document.createElement('div');
-    div.classList.add('producto');
-    div.innerHTML = `
-    <img src=${producto.img}>
-    <h3>${producto.nombre}</h3>
-    <p>${producto.descripcion}</p>
-    <p class="precioProducto">Precio:$ ${producto.precio}</p>
-    <button id="agregar${producto.id}" class="boton-agregar">Agregar <i class="fas fa-shopping-cart"></i></button>
-`
-
-    contenedorProductos.appendChild(div)
-
-    const boton = document.getElementById(`agregar${producto.id}`)
-    boton.addEventListener('click', () => {
-        agregarAlCarrito(producto.id);
-    })
+document.addEventListener('DOMContentLoaded', () => {
+    
+    
+    if (localStorage.getItem('carrito')) {
+        carrito = obtenerCarritoStorage();
+        actualizarCarrito ();
+    };
 });
 
+const mostrarProductos = (arrayProductos) =>{
+    
+    arrayProductos.forEach((producto) => {
+        
+        const div = document.createElement('div');
+        div.classList.add('producto');
+        div.innerHTML = `
+        <img src=${producto.img}>
+        <h3>${producto.nombre}</h3>
+        <p>${producto.descripcion}</p>
+        <p class="precioProducto">Precio:$ ${producto.precio}</p>
+        <button id="agregar${producto.id}" class="boton-agregar">Agregar <i class="fas fa-shopping-cart"></i></button>
+        `
+        
+        contenedorProductos.appendChild(div)
+        
+        const boton = document.getElementById(`agregar${producto.id}`)
+        boton.addEventListener('click', () => {
+            agregarAlCarrito(producto.id);
+        })
+    });
+}
 
-const agregarAlCarrito = (prodId) => {
-    const item =  stockProductos.find((prod) => prod.id === prodId);
-    carrito.push(item);
+const filtrarCategoria = (cat) =>{
+
+if (cat == 0) {
+
+    mostrarProductos(stockProductos);
+
+} else {
+
+    let listaFiltrada = stockProductos.filter(producto => producto.categoria == cat );
+    mostrarProductos(listaFiltrada);
+}
+}
+
+
+botonFiltrar.addEventListener ('click', () => {
+
+    let selector = document.getElementById("filtroCategoria");
+    let valor = selector.value;
+    contenedorProductos.innerHTML = ''
+    filtrarCategoria(valor);
+})
+
+const agregarAlCarrito = (productoId) => {
+    const existe = carrito.some(producto => producto.id === productoId)
+
+    if (existe) {
+        const prod = carrito.map(producto =>{
+            if (producto.id === productoId) {
+                producto.cantidad++
+            }
+        })
+    } else {
+        const item =  stockProductos.find((prod) => prod.id === productoId);
+        carrito.push(item);
+    }
     actualizarCarrito();
 };
 
@@ -44,13 +87,14 @@ const eliminarDelCarrito = (prodId) => {
     const item = carrito.find((prod) => prod.id === prodId);
     const indice = carrito.indexOf(item);
     carrito.splice(indice,1);
+    guardarCarritoStorage(carrito);
     actualizarCarrito();
-
 
 };
 
 botonVaciarCarrito.addEventListener('click', () => {
     carrito.length = 0;
+    guardarCarritoStorage(carrito);
     actualizarCarrito();
 });
 
@@ -69,79 +113,23 @@ const actualizarCarrito = () => {
         <button onclick = "eliminarDelCarrito(${prod.id})" class="boton-eliminar"><i class="fas fa-trash-alt"></i></button>
         `
         contenedorCarrito.appendChild(div);
+        guardarCarritoStorage(carrito);
     });
-    contadorCarrito.innerText =  carrito.length;
-    precioTotal.innerText = carrito.reduce((acc,prod) => acc + prod.precio, 0);
+    contadorCarrito.innerText =  carrito.reduce((acc, producto) => acc + producto.cantidad, 0);
+    precioTotal.innerText = carrito.reduce((acc,prod) => acc + prod.precio * prod.cantidad, 0);
+}
+
+
+const guardarCarritoStorage = (carritoDeCompras) => {
+    localStorage.setItem('carrito', JSON.stringify(carritoDeCompras))
+
+}
+
+const obtenerCarritoStorage = () => {
+    const carritoStorage = JSON.parse(localStorage.getItem('carrito'));
+    return carritoStorage;
 }
 
 
 
-const filtrarCategoria = (cat) =>{
-
-if (cat == 0) {
-    stockProductos.forEach((producto) => {
-
-        const div = document.createElement('div');
-        div.classList.add('producto');
-        div.innerHTML = `
-        <img src=${producto.img}>
-        <h3>${producto.nombre}</h3>
-        <p>${producto.descripcion}</p>
-        <p class="precioProducto">Precio:$ ${producto.precio}</p>
-        <button id="agregar${producto.id}" class="boton-agregar">Agregar <i class="fas fa-shopping-cart"></i></button>
-    `
-
-        contenedorProductos.appendChild(div)
-
-        const boton = document.getElementById(`agregar${producto.id}`)
-        boton.addEventListener('click', () => {
-            agregarAlCarrito(producto.id);
-        })
-    });
-
-} else {
-
-    let listaFiltrada = stockProductos.filter(producto => producto.categoria == cat );
-    listaFiltrada.forEach((producto) => {
-
-        const div = document.createElement('div');
-        div.classList.add('producto');
-        div.innerHTML = `
-        <img src=${producto.img}>
-        <h3>${producto.nombre}</h3>
-        <p>${producto.descripcion}</p>
-        <p class="precioProducto">Precio:$ ${producto.precio}</p>
-        <button id="agregar${producto.id}" class="boton-agregar">Agregar <i class="fas fa-shopping-cart"></i></button>
-    `
-
-        contenedorProductos.appendChild(div)
-
-        const boton = document.getElementById(`agregar${producto.id}`)
-        boton.addEventListener('click', () => {
-            agregarAlCarrito(producto.id);
-        })
-    });}
-}
-
-
-botonFiltrar.addEventListener ('click', () => {
-
-    let selector = document.getElementById("filtroCategoria");
-    let valor = selector.value;
-    contenedorProductos.innerHTML = ''
-    filtrarCategoria(valor);
-})
-
-
-
-const validarProductoRepetido = (productoId) => {
-    const productoRepetido = carrito.find(producto => producto.id === productoId)
-
-    if (productoRepetido) {
-        productoRepetido.cantidad++;
-        
-    } else {
-        agregarAlCarrito(productoId);
-    }
-}
-
+mostrarProductos(stockProductos);
