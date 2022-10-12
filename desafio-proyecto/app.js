@@ -14,8 +14,7 @@ const botonFiltrar = document.getElementById('filtrar');
 let carrito = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    
+
     if (localStorage.getItem('carrito')) {
         carrito = obtenerCarritoStorage();
         actualizarCarrito ();
@@ -23,39 +22,39 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const mostrarProductos = (arrayProductos) =>{
-    
+
     arrayProductos.forEach((producto) => {
-        
+
+        const {id, nombre, precio, descripcion, img} = producto;
+
         const div = document.createElement('div');
         div.classList.add('producto');
         div.innerHTML = `
-        <img src=${producto.img}>
-        <h3>${producto.nombre}</h3>
-        <p>${producto.descripcion}</p>
-        <p class="precioProducto">Precio:$ ${producto.precio}</p>
-        <button id="agregar${producto.id}" class="boton-agregar">Agregar <i class="fas fa-shopping-cart"></i></button>
+        <img src=${img}>
+        <h3>${nombre}</h3>
+        <p>${descripcion}</p>
+        <p class="precioProducto">Precio:$ ${precio}</p>
+        <button id="agregar${id}" class="boton-agregar">Agregar <i class="fas fa-shopping-cart"></i></button>
         `
-        
+
         contenedorProductos.appendChild(div)
-        
-        const boton = document.getElementById(`agregar${producto.id}`)
+
+        const boton = document.getElementById(`agregar${id}`)
         boton.addEventListener('click', () => {
-            agregarAlCarrito(producto.id);
+            agregarAlCarrito(id);
+            Toastify({
+                text: `se agrego el producto ${nombre} al carrito`,
+                duration: 2500
+        }).showToast();
         })
     });
 }
 
 const filtrarCategoria = (cat) =>{
 
-if (cat == 0) {
+    let listaFiltrada = [];
+    cat == 0?  mostrarProductos(stockProductos) : listaFiltrada = stockProductos.filter(producto => producto.categoria == cat ), mostrarProductos(listaFiltrada);
 
-    mostrarProductos(stockProductos);
-
-} else {
-
-    let listaFiltrada = stockProductos.filter(producto => producto.categoria == cat );
-    mostrarProductos(listaFiltrada);
-}
 }
 
 
@@ -72,9 +71,9 @@ const agregarAlCarrito = (productoId) => {
 
     if (existe) {
         const prod = carrito.map(producto =>{
-            if (producto.id === productoId) {
-                producto.cantidad++
-            }
+
+            producto.id === productoId && producto.cantidad++;
+
         })
     } else {
         const item =  stockProductos.find((prod) => prod.id === productoId);
@@ -103,14 +102,16 @@ const actualizarCarrito = () => {
     contenedorCarrito.innerHTML ="";
 
     carrito.forEach ((prod) => {
+        const {id: carritoId, nombre: carritoNombre, precio:carritoPrecio, cantidad:carritoCantidad, img:carritoImg} = prod;
+
         const div = document.createElement('div')
         div.classname = ('productoEnCarrito')
         div.innerHTML = `
-        <img class= "img-carrito" src=${prod.img}>
-        <p>${prod.nombre}</p>
-        <p>Precio: $${prod.precio}</p>
-        <p>Cantidad: <span id="cantidad">${prod.cantidad}</span></p>
-        <button onclick = "eliminarDelCarrito(${prod.id})" class="boton-eliminar"><i class="fas fa-trash-alt"></i></button>
+        <img class= "img-carrito" src=${carritoImg}>
+        <p>${carritoNombre}</p>
+        <p>Precio: $${carritoPrecio}</p>
+        <p>Cantidad: <span id="cantidad">${carritoCantidad}</span></p>
+        <button onclick = "eliminarDelCarrito(${carritoId})" class="boton-eliminar"><i class="fas fa-trash-alt"></i></button>
         `
         contenedorCarrito.appendChild(div);
         guardarCarritoStorage(carrito);
