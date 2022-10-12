@@ -1,4 +1,4 @@
-const contenedorProductos =  document.getElementById('contenedor-productos');
+const contenedorProductos = document.getElementById('contenedor-productos');
 
 const contenedorCarrito = document.getElementById('carrito-contenedor');
 
@@ -17,15 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (localStorage.getItem('carrito')) {
         carrito = obtenerCarritoStorage();
-        actualizarCarrito ();
+        actualizarCarrito();
     };
 });
 
-const mostrarProductos = (arrayProductos) =>{
+const mostrarProductos = (arrayProductos) => {
 
     arrayProductos.forEach((producto) => {
 
-        const {id, nombre, precio, descripcion, img} = producto;
+        const {
+            id,
+            nombre,
+            precio,
+            descripcion,
+            img
+        } = producto;
 
         const div = document.createElement('div');
         div.classList.add('producto');
@@ -42,23 +48,24 @@ const mostrarProductos = (arrayProductos) =>{
         const boton = document.getElementById(`agregar${id}`)
         boton.addEventListener('click', () => {
             agregarAlCarrito(id);
-            Toastify({
-                text: `se agrego el producto ${nombre} al carrito`,
-                duration: 2500
-        }).showToast();
+            toastr["success"](`el producto ${nombre} \n se agrego correctamente`, "Carrito");
+            toastr.options = {
+                "progressBar": true,
+                "timeOut": "3000"
+            }
         })
     });
 }
 
-const filtrarCategoria = (cat) =>{
+const filtrarCategoria = (cat) => {
 
     let listaFiltrada = [];
-    cat == 0?  mostrarProductos(stockProductos) : listaFiltrada = stockProductos.filter(producto => producto.categoria == cat ), mostrarProductos(listaFiltrada);
+    cat == 0 ? mostrarProductos(stockProductos) : listaFiltrada = stockProductos.filter(producto => producto.categoria == cat), mostrarProductos(listaFiltrada);
 
 }
 
 
-botonFiltrar.addEventListener ('click', () => {
+botonFiltrar.addEventListener('click', () => {
 
     let selector = document.getElementById("filtroCategoria");
     let valor = selector.value;
@@ -70,39 +77,94 @@ const agregarAlCarrito = (productoId) => {
     const existe = carrito.some(producto => producto.id === productoId)
 
     if (existe) {
-        const prod = carrito.map(producto =>{
+        const prod = carrito.map(producto => {
 
             producto.id === productoId && producto.cantidad++;
 
         })
     } else {
-        const item =  stockProductos.find((prod) => prod.id === productoId);
+        const item = stockProductos.find((prod) => prod.id === productoId);
         carrito.push(item);
     }
     actualizarCarrito();
 };
 
 const eliminarDelCarrito = (prodId) => {
-    const item = carrito.find((prod) => prod.id === prodId);
-    const indice = carrito.indexOf(item);
-    carrito.splice(indice,1);
-    guardarCarritoStorage(carrito);
-    actualizarCarrito();
 
+
+    Swal.fire({
+        title: 'Esta seguro?',
+        text: 'Va a eliminar el producto!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#099104',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const item = carrito.find((prod) => prod.id === prodId);
+            const indice = carrito.indexOf(item);
+            carrito.splice(indice, 1);
+            guardarCarritoStorage(carrito);
+            actualizarCarrito();
+            toastr["success"](`el producto ${item.nombre} \n fue eliminado correctamente`, "Carrito");
+            toastr.options = {
+                "progressBar": true,
+                "timeOut": "3000"
+            }
+        }
+    })
 };
 
+
+
+
 botonVaciarCarrito.addEventListener('click', () => {
-    carrito.length = 0;
-    guardarCarritoStorage(carrito);
-    actualizarCarrito();
+if (carrito.length != 0){
+    Swal.fire({
+        title: 'Esta seguro?',
+        text: 'Va a eliminar todos los productos del carrito!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#099104',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            carrito.length = 0;
+            guardarCarritoStorage(carrito);
+            actualizarCarrito();
+            toastr["success"](`los productos fueron eliminados correctamente`, "Carrito");
+            toastr.options = {
+                "progressBar": true,
+                "timeOut": "3000"
+            }
+        }
+    })
+}else {
+    toastr["error"](`El carrito ya se encuentra vacio`, "Carrito");
+    toastr.options = {
+        "progressBar": true,
+        "timeOut": "3000"
+    }
+}
+
 });
 
 
 const actualizarCarrito = () => {
-    contenedorCarrito.innerHTML ="";
+    contenedorCarrito.innerHTML = "";
 
-    carrito.forEach ((prod) => {
-        const {id: carritoId, nombre: carritoNombre, precio:carritoPrecio, cantidad:carritoCantidad, img:carritoImg} = prod;
+    carrito.forEach((prod) => {
+        const {
+            id: carritoId,
+            nombre: carritoNombre,
+            precio: carritoPrecio,
+            cantidad: carritoCantidad,
+            img: carritoImg
+        } = prod;
 
         const div = document.createElement('div')
         div.classname = ('productoEnCarrito')
@@ -116,8 +178,8 @@ const actualizarCarrito = () => {
         contenedorCarrito.appendChild(div);
         guardarCarritoStorage(carrito);
     });
-    contadorCarrito.innerText =  carrito.reduce((acc, producto) => acc + producto.cantidad, 0);
-    precioTotal.innerText = carrito.reduce((acc,prod) => acc + prod.precio * prod.cantidad, 0);
+    contadorCarrito.innerText = carrito.reduce((acc, producto) => acc + producto.cantidad, 0);
+    precioTotal.innerText = carrito.reduce((acc, prod) => acc + prod.precio * prod.cantidad, 0);
 }
 
 
@@ -130,7 +192,6 @@ const obtenerCarritoStorage = () => {
     const carritoStorage = JSON.parse(localStorage.getItem('carrito'));
     return carritoStorage;
 }
-
 
 
 mostrarProductos(stockProductos);
