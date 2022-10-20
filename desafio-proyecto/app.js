@@ -4,6 +4,8 @@ const contenedorCarrito = document.getElementById('carrito-contenedor');
 
 const botonVaciarCarrito = document.getElementById('vaciar-carrito');
 
+const botonComprarCarrito = document.getElementById('comprar-carrito')
+
 const contadorCarrito = document.getElementById('contadorCarrito');
 
 const precioTotal = document.getElementById('precioTotal');
@@ -13,15 +15,27 @@ const botonFiltrar = document.getElementById('filtrar');
 
 let carrito = [];
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
     if (localStorage.getItem('carrito')) {
         carrito = obtenerCarritoStorage();
         actualizarCarrito();
     };
+
+    arrayProductos = await obtenerProductos();
+    mostrarProductos(arrayProductos)
 });
 
-const mostrarProductos = (arrayProductos) => {
+const obtenerProductos = async () => {
+
+    const response = await fetch('/stock.json');
+
+        const producto = response.json();
+        return producto
+        };
+
+
+const mostrarProductos = async (arrayProductos) => {
 
     arrayProductos.forEach((producto) => {
 
@@ -57,10 +71,12 @@ const mostrarProductos = (arrayProductos) => {
     });
 }
 
-const filtrarCategoria = (cat) => {
+const filtrarCategoria = async (cat) => {
 
+    const productos = await obtenerProductos();
     let listaFiltrada = [];
-    cat == 0 ? mostrarProductos(stockProductos) : listaFiltrada = stockProductos.filter(producto => producto.categoria == cat), mostrarProductos(listaFiltrada);
+
+    cat == 0 ? mostrarProductos(productos) : listaFiltrada = productos.filter(producto => producto.categoria == cat), mostrarProductos(listaFiltrada);
 
 }
 
@@ -73,7 +89,9 @@ botonFiltrar.addEventListener('click', () => {
     filtrarCategoria(valor);
 })
 
-const agregarAlCarrito = (productoId) => {
+
+const agregarAlCarrito = async (productoId) => {
+    const productos = await obtenerProductos();
     const existe = carrito.some(producto => producto.id === productoId)
 
     if (existe) {
@@ -83,7 +101,7 @@ const agregarAlCarrito = (productoId) => {
 
         })
     } else {
-        const item = stockProductos.find((prod) => prod.id === productoId);
+        const item = productos.find((prod) => prod.id === productoId);
         carrito.push(item);
     }
     actualizarCarrito();
@@ -153,6 +171,18 @@ if (carrito.length != 0){
 
 });
 
+botonComprarCarrito.addEventListener('click', () => {
+    if (carrito.length != 0){
+
+    }else {
+        toastr["error"](`No hay productos en el carrito`, "Carrito");
+        toastr.options = {
+            "progressBar": true,
+            "timeOut": "3000"
+        }
+}
+});
+
 
 const actualizarCarrito = () => {
     contenedorCarrito.innerHTML = "";
@@ -192,6 +222,3 @@ const obtenerCarritoStorage = () => {
     const carritoStorage = JSON.parse(localStorage.getItem('carrito'));
     return carritoStorage;
 }
-
-
-mostrarProductos(stockProductos);
