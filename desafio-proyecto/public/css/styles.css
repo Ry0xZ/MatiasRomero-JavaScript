@@ -50,7 +50,7 @@ h1 {
   visibility: visible;
 }
 
-#panel-cuenta{
+.activarF{
   opacity: 0;
   visibility: hidden;
 }
