@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 const obtenerProductos = async () => {
 
-    const response = await fetch('/stock.json');
+    const response = await fetch('stock.json');
 
     const producto = response.json();
     return producto
