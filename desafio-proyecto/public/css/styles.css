@@ -130,6 +130,7 @@ p {
   transition: all .5s;
   opacity: 0;
   visibility: hidden;
+  flex-direction: column;
 }
 
 .modal-active {
